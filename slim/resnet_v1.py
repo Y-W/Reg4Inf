@@ -61,7 +61,7 @@ import tensorflow as tf
 import resnet_utils
 
 
-resnet_arg_scope = resnet_utils.resnet_arg_scope
+resnet_arg_scope = resnet_utils.resnet_arg_scope(weight_decay=0.0)
 slim = tf.contrib.slim
 
 
@@ -184,29 +184,30 @@ def resnet_v1(inputs,
   """
   with tf.variable_scope(scope, 'resnet_v1', [inputs], reuse=reuse) as sc:
     end_points_collection = sc.name + '_end_points'
-    with slim.arg_scope([slim.conv2d, bottleneck,
-                         resnet_utils.stack_blocks_dense],
-                        outputs_collections=end_points_collection):
-      with slim.arg_scope([slim.batch_norm], is_training=is_training):
-        with slim.arg_scope([bottleneck], noise_fn=noise_fn):
-          net = inputs
-          if include_root_block:
-            net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
-            net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
-          net = resnet_utils.stack_blocks_dense(net, blocks)
-          if global_pool:
-            # Global average pooling.
-            net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
-          if num_classes is not None:
-            net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None,
-                              normalizer_fn=None, scope='logits')
-          if spatial_squeeze:
-            logits = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
-          # Convert end_points_collection into a dictionary of end_points.
-          end_points = slim.utils.convert_collection_to_dict(end_points_collection)
-          if num_classes is not None:
-            end_points['predictions'] = slim.softmax(logits, scope='predictions')
-          return logits, end_points
+    with slim.arg_scope(resnet_arg_scope):
+      with slim.arg_scope([slim.conv2d, bottleneck,
+                          resnet_utils.stack_blocks_dense],
+                          outputs_collections=end_points_collection):
+        with slim.arg_scope([slim.batch_norm], is_training=is_training):
+          with slim.arg_scope([bottleneck], noise_fn=noise_fn):
+            net = inputs
+            if include_root_block:
+              net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
+              net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
+            net = resnet_utils.stack_blocks_dense(net, blocks)
+            if global_pool:
+              # Global average pooling.
+              net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
+            if num_classes is not None:
+              net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None,
+                                normalizer_fn=None, scope='logits')
+            if spatial_squeeze:
+              logits = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
+            # Convert end_points_collection into a dictionary of end_points.
+            end_points = slim.utils.convert_collection_to_dict(end_points_collection)
+            if num_classes is not None:
+              end_points['predictions'] = slim.softmax(logits, scope='predictions')
+            return logits, end_points
 resnet_v1.default_image_size = 224
 
 
