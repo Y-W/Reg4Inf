@@ -235,7 +235,7 @@ def resnet_v1_50(inputs,
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
                    global_pool=global_pool, output_stride=output_stride,
-                   include_root_block=True, reuse=reuse, noise_std=0.0, scope=scope)
+                   include_root_block=True, reuse=reuse, noise_std=noise_std, scope=scope)
 resnet_v1_50.default_image_size = resnet_v1.default_image_size
 
 
