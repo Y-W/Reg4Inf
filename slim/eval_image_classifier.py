@@ -144,8 +144,8 @@ def main(_):
             prev_sum = prob_list[k]
         else:
             prev_sum += prob_list[k]
-        metric_maps['rep%i_Accuracy'] = slim.metrics.streaming_accuracy(tf.argmax(prev_sum, axis=1), labels)
-        metric_maps['rep%i_Recall5'] = slim.metrics.streaming_recall_at_k(prev_sum, labels, 5)
+        metric_maps['rep%i_Accuracy' % (k+1)] = slim.metrics.streaming_accuracy(tf.argmax(prev_sum, axis=1), labels)
+        metric_maps['rep%i_Recall5' % (k+1)] = slim.metrics.streaming_recall_at_k(prev_sum, labels, 5)
 
     # Define the metrics:
     names_to_values, names_to_updates = slim.metrics.aggregate_metric_map(metric_maps)
