@@ -66,7 +66,7 @@ slim = tf.contrib.slim
 
 
 @slim.add_arg_scope
-def bottleneck(inputs, depth, depth_bottleneck, stride, rate=1,
+def bottleneck(inputs, depth, depth_bottleneck, stride, rate=1, noise_std=0.0,
                outputs_collections=None, scope=None):
   """Bottleneck residual unit variant with BN after convolutions.
 
@@ -105,6 +105,8 @@ def bottleneck(inputs, depth, depth_bottleneck, stride, rate=1,
     residual = slim.conv2d(residual, depth, [1, 1], stride=1,
                            activation_fn=None, scope='conv3')
 
+    residual = tf.multiply(residual, tf.random_normal(residual.shape, mean=1.0, stddev=noise_std, name='noise'))
+
     output = tf.nn.relu(shortcut + residual)
 
     return slim.utils.collect_named_outputs(outputs_collections,
@@ -121,6 +123,7 @@ def resnet_v1(inputs,
               include_root_block=True,
               spatial_squeeze=True,
               reuse=None,
+              noise_std=0.0,
               scope=None):
   """Generator for v1 ResNet models.
 
@@ -185,28 +188,29 @@ def resnet_v1(inputs,
                          resnet_utils.stack_blocks_dense],
                         outputs_collections=end_points_collection):
       with slim.arg_scope([slim.batch_norm], is_training=is_training):
-        net = inputs
-        if include_root_block:
-          if output_stride is not None:
-            if output_stride % 4 != 0:
-              raise ValueError('The output_stride needs to be a multiple of 4.')
-            output_stride /= 4
-          net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
-          net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
-        net = resnet_utils.stack_blocks_dense(net, blocks, output_stride)
-        if global_pool:
-          # Global average pooling.
-          net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
-        if num_classes is not None:
-          net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None,
-                            normalizer_fn=None, scope='logits')
-        if spatial_squeeze:
-          logits = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
-        # Convert end_points_collection into a dictionary of end_points.
-        end_points = slim.utils.convert_collection_to_dict(end_points_collection)
-        if num_classes is not None:
-          end_points['predictions'] = slim.softmax(logits, scope='predictions')
-        return logits, end_points
+        with slim.arg_scope([bottleneck], noise_std=noise_std):
+          net = inputs
+          if include_root_block:
+            if output_stride is not None:
+              if output_stride % 4 != 0:
+                raise ValueError('The output_stride needs to be a multiple of 4.')
+              output_stride /= 4
+            net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
+            net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
+          net = resnet_utils.stack_blocks_dense(net, blocks, output_stride)
+          if global_pool:
+            # Global average pooling.
+            net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
+          if num_classes is not None:
+            net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None,
+                              normalizer_fn=None, scope='logits')
+          if spatial_squeeze:
+            logits = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
+          # Convert end_points_collection into a dictionary of end_points.
+          end_points = slim.utils.convert_collection_to_dict(end_points_collection)
+          if num_classes is not None:
+            end_points['predictions'] = slim.softmax(logits, scope='predictions')
+          return logits, end_points
 resnet_v1.default_image_size = 224
 
 
@@ -216,6 +220,7 @@ def resnet_v1_50(inputs,
                  global_pool=True,
                  output_stride=None,
                  reuse=None,
+                 noise_std=0.0,
                  scope='resnet_v1_50'):
   """ResNet-50 model of [1]. See resnet_v1() for arg and return description."""
   blocks = [
@@ -230,7 +235,7 @@ def resnet_v1_50(inputs,
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
                    global_pool=global_pool, output_stride=output_stride,
-                   include_root_block=True, reuse=reuse, scope=scope)
+                   include_root_block=True, reuse=reuse, noise_std=0.0, scope=scope)
 resnet_v1_50.default_image_size = resnet_v1.default_image_size
 
 

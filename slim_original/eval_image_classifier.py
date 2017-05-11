@@ -59,7 +59,7 @@ tf.app.flags.DEFINE_string(
     'dataset_dir', None, 'The directory where the dataset files are stored.')
 
 tf.app.flags.DEFINE_integer(
-    'labels_offset', 0,
+    'labels_offset', 1,
     'An offset for the labels in the dataset. This flag is primarily used to '
     'evaluate the VGG and ResNet architectures which do not use a background '
     'class for the ImageNet dataset.')
@@ -78,6 +78,8 @@ tf.app.flags.DEFINE_float(
 
 tf.app.flags.DEFINE_integer(
     'eval_image_size', None, 'Eval image size')
+
+tf.app.flags.DEFINE_float('noise_std', 0.0, 'Noise stddev')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -121,7 +123,8 @@ def main(_):
     preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
     image_preprocessing_fn = preprocessing_factory.get_preprocessing(
         preprocessing_name,
-        is_training=False)
+        is_training=False,
+        noise_std=FLAGS.noise_std)
 
     eval_image_size = FLAGS.eval_image_size or network_fn.default_image_size
 
