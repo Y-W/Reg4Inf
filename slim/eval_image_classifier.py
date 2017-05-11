@@ -96,7 +96,7 @@ def main(_):
     # Select the model #
     ####################
     noise_fn = noise.make_noise_fn(FLAGS.noise_type, FLAGS.noise_param)
-    network_fn_maker = eval('resnet_v1_hard_branch.' + FLAGS.model_name)
+    network_fn_maker = eval('resnet_v1.' + FLAGS.model_name)
     network_fn = functools.partial(network_fn_maker,
         num_classes=(dataset.num_classes - FLAGS.labels_offset),
         is_training=False, noise_fn = noise_fn)
