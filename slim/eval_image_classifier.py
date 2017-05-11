@@ -76,8 +76,6 @@ def main(_):
     raise ValueError('You must supply the dataset directory with --dataset_dir')
   if not FLAGS.checkpoint_path:
     raise ValueError('You must supply the model with --checkpoint_path')
-  if not FLAGS.eval_dir:
-    raise ValueError('You must supply the evaluation result directory with --eval_dir')
 
   print('Model name: %s' % FLAGS.model_name)
   print('Checkpoint path: %s' % FLAGS.checkpoint_path)
