@@ -104,7 +104,8 @@ def main(_):
     network_fn = nets_factory.get_network_fn(
         FLAGS.model_name,
         num_classes=(dataset.num_classes - FLAGS.labels_offset),
-        is_training=False)
+        is_training=False,
+        noise_std=FLAGS.noise_std)
 
     ##############################################################
     # Create a dataset provider that loads data from the dataset #
@@ -123,8 +124,7 @@ def main(_):
     preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
     image_preprocessing_fn = preprocessing_factory.get_preprocessing(
         preprocessing_name,
-        is_training=False,
-        noise_std=FLAGS.noise_std)
+        is_training=False)
 
     eval_image_size = FLAGS.eval_image_size or network_fn.default_image_size
 
