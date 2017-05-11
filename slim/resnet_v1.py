@@ -120,7 +120,6 @@ def resnet_v1(inputs,
               num_classes=None,
               is_training=True,
               global_pool=True,
-              output_stride=None,
               include_root_block=True,
               spatial_squeeze=True,
               reuse=None,
@@ -192,13 +191,9 @@ def resnet_v1(inputs,
         with slim.arg_scope([bottleneck], noise_fn=noise_fn):
           net = inputs
           if include_root_block:
-            if output_stride is not None:
-              if output_stride % 4 != 0:
-                raise ValueError('The output_stride needs to be a multiple of 4.')
-              output_stride /= 4
             net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
             net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
-          net = resnet_utils.stack_blocks_dense(net, blocks, output_stride)
+          net = resnet_utils.stack_blocks_dense(net, blocks)
           if global_pool:
             # Global average pooling.
             net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
@@ -219,7 +214,6 @@ def resnet_v1_50(inputs,
                  num_classes=None,
                  is_training=True,
                  global_pool=True,
-                 output_stride=None,
                  reuse=None,
                  noise_fn=None,
                  scope='resnet_v1_50'):
@@ -235,7 +229,7 @@ def resnet_v1_50(inputs,
           'block4', bottleneck, [(2048, 512, 1)] * 3)
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
-                   global_pool=global_pool, output_stride=output_stride,
+                   global_pool=global_pool,
                    include_root_block=True, reuse=reuse, noise_fn=noise_fn, scope=scope)
 resnet_v1_50.default_image_size = resnet_v1.default_image_size
 
@@ -244,7 +238,6 @@ def resnet_v1_101(inputs,
                   num_classes=None,
                   is_training=True,
                   global_pool=True,
-                  output_stride=None,
                   reuse=None,
                   noise_fn=None,
                   scope='resnet_v1_101'):
@@ -260,7 +253,7 @@ def resnet_v1_101(inputs,
           'block4', bottleneck, [(2048, 512, 1)] * 3)
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
-                   global_pool=global_pool, output_stride=output_stride,
+                   global_pool=global_pool,
                    include_root_block=True, reuse=reuse, noise_fn=noise_fn, scope=scope)
 resnet_v1_101.default_image_size = resnet_v1.default_image_size
 
@@ -269,7 +262,6 @@ def resnet_v1_152(inputs,
                   num_classes=None,
                   is_training=True,
                   global_pool=True,
-                  output_stride=None,
                   reuse=None,
                   noise_fn=None,
                   scope='resnet_v1_152'):
@@ -284,7 +276,7 @@ def resnet_v1_152(inputs,
       resnet_utils.Block(
           'block4', bottleneck, [(2048, 512, 1)] * 3)]
   return resnet_v1(inputs, blocks, num_classes, is_training,
-                   global_pool=global_pool, output_stride=output_stride,
+                   global_pool=global_pool,
                    include_root_block=True, reuse=reuse, noise_fn=noise_fn, scope=scope)
 resnet_v1_152.default_image_size = resnet_v1.default_image_size
 
@@ -293,7 +285,6 @@ def resnet_v1_200(inputs,
                   num_classes=None,
                   is_training=True,
                   global_pool=True,
-                  output_stride=None,
                   reuse=None,
                   noise_fn=None,
                   scope='resnet_v1_200'):
@@ -308,6 +299,6 @@ def resnet_v1_200(inputs,
       resnet_utils.Block(
           'block4', bottleneck, [(2048, 512, 1)] * 3)]
   return resnet_v1(inputs, blocks, num_classes, is_training,
-                   global_pool=global_pool, output_stride=output_stride,
+                   global_pool=global_pool,
                    include_root_block=True, reuse=reuse, noise_fn=noise_fn, scope=scope)
 resnet_v1_200.default_image_size = resnet_v1.default_image_size
