@@ -154,7 +154,7 @@ def main(_):
     final_op_list = []
     for name, value in names_to_values.iteritems():
       summary_name = 'eval/%s' % name
-      op = tf.Print(value, value, message=summary_name)
+      op = tf.Print(value, [value], message=summary_name)
       final_op_list.append(op)
 
     num_batches = math.ceil(dataset.num_samples / float(FLAGS.batch_size))
